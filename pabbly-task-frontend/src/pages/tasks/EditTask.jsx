@@ -13,6 +13,15 @@ const EditTask = () => {
   const [priority, setPriority] = useState("medium");
   const [loading, setLoading] = useState(false);
 
+  // Minimum selectable date (today) in YYYY-MM-DD for date input
+  const minDate = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -37,6 +46,10 @@ const EditTask = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (dueDate && dueDate < minDate) {
+      addToast("error", "Due date cannot be earlier than today");
+      return;
+    }
     try {
       await api.put(`/tasks/${id}`, { title, description, dueDate, priority });
       addToast("success", "Task updated successfully");
@@ -77,11 +90,12 @@ const EditTask = () => {
           <label className="block text-sm mb-1">Due Date</label>
           <input
             type="date"
+            min={minDate}
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="w-full border rounded px-3 py-2 text-sm"
           />
-        </div>
+        </div> 
 
         <div className="mb-4">
           <label className="block text-sm mb-1">Priority</label>
